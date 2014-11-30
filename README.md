@@ -6,44 +6,47 @@ ab testing for code
 
 ## Usage
 ```php
-	<?php
+<?php
 
-	require 'vendor/autoload.php';
+require 'vendor/autoload.php';
 
-	$experiment = new Gil\ABCode\DefaultExperiment('test-one');
+$experiment = new Gil\ABCode\DefaultExperiment('test-one');
 
-	$test = new Gil\ABCode\Test($experiment);
+$test = new Gil\ABCode\Test($experiment);
 
 
-	$test
-		->setControl(function() {
+$test
+	->setControl(function() {
 
-			usleep(100);
+		usleep(200);
 
-			return [1, 2, 3, 4, 5, 6];
-		}, function ($result) {
+		return [1, 2, 3, 4, 5, 6];
 
-			return array_reduce($result, function($carry, $item) {
-				$carry += $item;
-	    		return $carry;
-			});	
+	}, function ($result) {
 
-		})
-		->setCandidate(function() {
-			usleep(100);
+		return array_reduce($result, function($carry, $item) {
+			$carry += $item;
+    		return $carry;
+		});	
 
-			return [1, 2, 3, 4, 5, 6];
-		}, function ($result) {
+	})
+	->setCandidate(function() {
 
-			return array_reduce($result, function($carry, $item) {
-				$carry += $item;
-	    		return $carry;
-			});	
+		usleep(100);
 
-		})
-		->runIf(function(){
-			return true;
-		});
+		return [1, 2, 3, 4, 5, 6];
 
-	$test->run(true);
+	}, function ($result) {
+
+		return array_reduce($result, function($carry, $item) {
+			$carry += $item;
+    		return $carry;
+		});	
+
+	})
+	->runIf(function(){
+		return true;
+	});
+
+$test->run(true);
 ```
