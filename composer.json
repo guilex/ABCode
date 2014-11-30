@@ -1,0 +1,21 @@
+{
+    "name": "gil/ab-code",
+    "description": "ab testing for code",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gil",
+            "email": "dragan.stefanov@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Gil\\ABCode\\": "src/"
+        }
+    },
+    
+    "minimum-stability": "dev",
+    
+    "require": {
+    }
+}
