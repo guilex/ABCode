@@ -1,117 +1,178 @@
 <?php namespace Gil\ABCode;
 
+use Exception;
+
 class Test {
 
-	protected $control;
-	
-	protected $candidate;
+    /**
+     * @Observation
+     */
+    protected $control;
 
-	protected $experiment;
+    /**
+     * @Observation
+     */
+    protected $candidate;
 
-	protected $controlResultMapper;
+    /**
+     * @var ExperimentInterface
+     */
+    protected $experiment;
 
-	protected $candidateResultMapper;
+    /**
+     * @Callable
+     */
+    protected $controlResultMapper;
 
-	protected $context;
+    /**
+     * @Callable
+     */
+    protected $candidateResultMapper;
 
-	protected $compareMode;
+    /**
+     * @var
+     */
+    protected $context;
 
-	public function __construct(ExperimentInterface $experiment)
-	{
-		$this->experiment = $experiment;
+    /**
+     * @param ExperimentInterface $experiment
+     */
+    public function __construct(ExperimentInterface $experiment)
+    {
+        $this->experiment = $experiment;
 
-		$this->enabled = $experiment->enabled();
-	}
+        $this->enabled = $experiment->enabled();
+    }
 
-	public function setContext($context)
-	{
-		$this->context = $context;
+    /**
+     * Set contest of the observation
+     *
+     * @param $context
+     * @return $this
+     */
+    public function setContext($context)
+    {
+        $this->context = $context;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function setControl(Callable $fn, Callable $mapper = null)
-	{
-		$this->control = $fn;
+    /**
+     * Set control subject
+     *
+     * @param callable $fn
+     * @param callable $mapper
+     * @return $this
+     */
+    public function setControl(Callable $fn, Callable $mapper = null)
+    {
+        $this->control = $fn;
 
-		$this->controlResultMapper = $mapper;
+        $this->controlResultMapper = $mapper;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function setCandidate(Callable $fn, Callable $mapper = null)
-	{
-		$this->candidate = $fn;
+    /**
+     * Set candidate
+     *
+     * @param callable $fn
+     * @param callable $mapper
+     * @return $this
+     */
+    public function setCandidate(Callable $fn, Callable $mapper = null)
+    {
+        $this->candidate = $fn;
 
-		$this->candidateResultMapper = $mapper;
-		
-		return $this;
-	}
+        $this->candidateResultMapper = $mapper;
 
-	public function runIf(Callable $fn = null)
-	{
-		if ($fn)
-		{
-			$this->enabled = $fn();
-		}
+        return $this;
+    }
 
-		return $this;
-	}
-	
-	public function run($compareMode = false)
-	{
-		if (!$this->candidate or !$this->enabled)
-		{
-			$control = $this->control;
-			
-			return $control();
-		}
-	
-		$result = new Result;
-		$result->compareMode = $compareMode;
-		
-		if ($compareMode)
-		{
-			$result->control = $this->observe($this->control, $this->controlResultMapper);
-			$result->candidate = $this->observe($this->candidate, $this->candidateResultMapper);
-		}
-		else
-		{
-			if ($this->experiment->runCandidate())
-			{
-				$result->candidate = $this->observe($this->candidate, $this->candidateResultMapper);
-			}
-			else
-			{
-				$result->control = $this->observe($this->control, $this->controlResultMapper);
-			}
-		}
+    /**
+     * Override enabled
+     *
+     * @param callable $fn
+     * @return $this
+     */
+    public function runIf(Callable $fn = null)
+    {
+        if ($fn)
+        {
+            $this->enabled = $fn();
+        }
 
-		$this->experiment->publish($result);
+        return $this;
+    }
 
-		return $result->get();
-	}
+    /**
+     * Run experiment
+     *
+     * @param bool $compareMode
+     * @return mixed
+     */
+    public function run($compareMode = false)
+    {
+        // if there is no candidate or test is disabled, simply return control result right away
+        if (!$this->candidate or !$this->enabled)
+        {
+            $control = $this->control;
 
-	protected function observe($function, $mapper)
-	{
-		$observation = new Observation;
+            return $control();
+        }
 
-		$observation->mapper = $mapper;
+        $result = new Result;
+        $result->compareMode = $compareMode;
 
-		$start = microtime(true);
-		
-		try 
-		{
-			$observation->result = $function();
-		}
-		catch (Exception $e)
-		{
-			$observation->storeException($e);
-		}
-		
-		$observation->duration = microtime(true) - $start;
+        if ($compareMode)
+        {
+            $result->control = $this->observe($this->control, $this->controlResultMapper);
+            $result->candidate = $this->observe($this->candidate, $this->candidateResultMapper);
+        }
+        else
+        {
+            if ($this->experiment->shouldCandidateRun())
+            {
+                $result->candidate = $this->observe($this->candidate, $this->candidateResultMapper);
+            }
+            else
+            {
+                $result->control = $this->observe($this->control, $this->controlResultMapper);
+            }
+        }
 
-		return $observation;
-	}
+        $this->experiment->publish($result);
+
+        return $result->get();
+    }
+
+    /**
+     * Observe execution
+     *
+     * @param $function
+     * @param $mapper
+     * @return Observation
+     */
+    protected function observe($function, $mapper)
+    {
+        $observation = new Observation;
+
+        $observation->mapper = $mapper;
+
+        $start = microtime(true);
+
+        try
+        {
+            $observation->result = $function();
+        }
+        catch (Exception $e)
+        {
+            $observation->storeException($e);
+        }
+
+        $observation->duration = microtime(true) - $start;
+
+        return $observation;
+    }
 
 }

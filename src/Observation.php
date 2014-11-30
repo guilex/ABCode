@@ -2,31 +2,66 @@
 
 class Observation {
 
-	public $duration;
+    /**
+     * Duration of code execution
+     *
+     * @var
+     */
+    public $duration;
 
-	public $result;
+    /**
+     * Result
+     *
+     * @var
+     */
+    public $result;
 
-	public $mapper;
+    /**
+     * Result mapper
+     *
+     * @var
+     */
+    public $mapper;
 
-	public $raisedException;
+    /**
+     * Is exception raised
+     *
+     * @var bool
+     */
+    public $raisedException = false;
 
-	public $exception;
+    /**
+     * Exception data
+     *
+     * @var
+     */
+    public $exception;
 
-	public function mappedResult()
-	{
-		$mapper = $this->mapper;
+    /**
+     * Returns mapped results
+     *
+     * @return mixed
+     */
+    public function mappedResult()
+    {
+        $mapper = $this->mapper;
 
-		return $mapper ? $mapper($this->result) : $this->result;
-	}
+        return $mapper ? $mapper($this->result) : $this->result;
+    }
 
-	public function storeException($exception)
-	{
-		$this->raisedException = true;
+    /**
+     * Stores exception data
+     *
+     * @param $exception
+     */
+    public function storeException($exception)
+    {
+        $this->raisedException = true;
 
-		$this->exception = [
-			'class' => get_class($exception),
-			'message' => $exception->getMessage(),
-			'backtrace' => $exception->getTraceAsString()
-		];
-	}
+        $this->exception = [
+            'class' => get_class($exception),
+            'message' => $exception->getMessage(),
+            'backtrace' => $exception->getTraceAsString()
+        ];
+    }
 }

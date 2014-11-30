@@ -2,10 +2,26 @@
 
 interface ExperimentInterface {
 
-	public function enabled();
+    /**
+     * Is test enabled. If not "run" will just return control without any additional data
+     *
+     * @return mixed
+     */
+    public function enabled();
 
-	public function runCandidate();
+    /**
+     * Decide if candidate should be ran. This is used only in non-compare mode
+     *
+     * @return mixed
+     */
+    public function shouldCandidateRun();
 
-	public function publish(Result $result);
+    /**
+     * Method called after observations are performed. Publishes test findings
+     *
+     * @param Result $result
+     * @return mixed
+     */
+    public function publish(Result $result);
 
 }
