@@ -5,7 +5,7 @@ ab testing for code
 
 
 ## Usage
-
+```php
 	<?php
 
 	require 'vendor/autoload.php';
@@ -46,3 +46,4 @@ ab testing for code
 		});
 
 	$test->run(true);
+```
